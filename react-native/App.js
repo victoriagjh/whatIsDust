@@ -4,6 +4,7 @@
  *
  * @format
  * @flow
+ 피처 체크
  */
 
 import React from 'react';
