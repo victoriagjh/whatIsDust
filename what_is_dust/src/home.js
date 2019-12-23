@@ -16,7 +16,10 @@ export default class Home extends Component {
           position: new kakao.maps.LatLng(37.503716, 127.044844)
       }),
       placeSearch: new kakao.maps.services.Places(),
-      infoWindow: new kakao.maps.InfoWindow({zIndex:1}),
+      infoWindow: new kakao.maps.CustomOverlay({}),
+      region: '휴먼스케이프',
+      departure: null,
+      arrival: null,
     }
 
     this.searchPlaces = this.searchPlaces.bind(this);
@@ -28,6 +31,7 @@ export default class Home extends Component {
     this.getListItem = this.getListItem.bind(this);
     this.displayInfowindow = this.displayInfowindow.bind(this);
     this.displayPagination = this.displayPagination.bind(this);
+    this.closeOverlay = this.closeOverlay.bind(this);
   };
 
   searchPlaces(){
@@ -88,21 +92,17 @@ export default class Home extends Component {
           // 해당 장소에 인포윈도우에 장소명을 표시합니다
           // mouseout 했을 때는 인포윈도우를 닫습니다
           ((marker, title) => {
+              kakao.maps.event.addListener(marker, 'click', () => {
+                this.displayInfowindow(marker, title);
+              });
               kakao.maps.event.addListener(marker, 'mouseover', () => {
                   this.displayInfowindow(marker, title);
-              });
-
-              kakao.maps.event.addListener(marker, 'mouseout', () => {
-                  this.state.infoWindow.close();
               });
 
               itemEl.onmouseover =  () => {
                   this.displayInfowindow(marker, title);
               };
 
-              itemEl.onmouseout = () => {
-                  this.state.infoWindow.close();
-              };
           })(marker, places[i].place_name);
           // 함수를 조건문처럼 사용하여 해당 함수가 true일때 marker,places[i].place_name함수가 불리워짐.
 
@@ -115,6 +115,10 @@ export default class Home extends Component {
 
       // 검색된 장소 위치를 기준으로 지도 범위를 재설정합니다
       this.state.map.setBounds(bounds);
+  }
+  // 커스텀 오버레이를 닫기 위해 호출되는 함수입니다
+  closeOverlay() {
+    this.state.infoWindow.setMap(null);
   }
 
   getListItem(index, places) {
@@ -205,11 +209,44 @@ export default class Home extends Component {
   // 검색결과 목록 또는 마커를 클릭했을 때 호출되는 함수입니다
   // 인포윈도우에 장소명을 표시합니다
   displayInfowindow(marker, title) {
-      console.log("here");
-      var content = '<div style="padding:5px;z-index:1;">' + title + '</div>';
+        let content = document.createElement('div');
+        content.className = 'wraps';
+
+        let info = document.createElement('div');
+        info.className='infos';
+
+        let titles = document.createElement('div');
+        titles.className ='title';
+        titles.innerHTML = title;
+
+        let close = document.createElement('div');
+        close.className = 'close';
+        close.onclick = () => {
+          this.state.infoWindow.setMap(null);
+        };
+
+        let body = document.createElement('div');
+        body.className = 'body';
+        let desc = document.createElement('div');
+        desc.className = 'desc';
+        let ellipsis = document.createElement('div');
+        desc.class = 'ellipsis';
+        ellipsis.innerHTML = '제주특별자치도 제주시 첨단로 242';
+        let jibun = document.createElement('div');
+        jibun.innerHTML = '(우) 63309 (지번) 영평동 2181';
+        jibun.className = 'jibun ellipsis';
+
+        desc.appendChild(ellipsis);
+        desc.appendChild(jibun);
+        body.appendChild(desc);
+        titles.appendChild(close);
+        info.appendChild(titles);
+        info.appendChild(body);
+        content.appendChild(info);
 
       this.state.infoWindow.setContent(content);
-      this.state.infoWindow.open(this.state.map, marker);
+      this.state.infoWindow.setPosition(marker.getPosition());
+      this.state.infoWindow.setMap(this.state.map);
   }
 
    // 검색결과 목록의 자식 Element를 제거하는 함수입니다
@@ -245,8 +282,8 @@ export default class Home extends Component {
           <div id="map" style={{width:"1000px",height:"600px", align:"middle" }}></div>
             <div id="menu_wrap" className="bg_white">
                 <div className="option">
-                      지역 검색 : <input type="text" value = "은평구청" id="keyword" size="15" />
-                      <button type="submit" onClick={this.searchPlaces.bind(this)}>검색하기</button>
+                  지역 검색 : <input type="text" value = {this.state.region} id="keyword" size="15" onChange={(e) => this.setState({region: e.target.value})}/>
+                  <button type="submit" onClick={this.searchPlaces}>검색하기</button>
                 </div>
                 <ul id="placesList"></ul>
                 <div id="pagination"></div>
