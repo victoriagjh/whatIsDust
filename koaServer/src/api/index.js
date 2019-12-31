@@ -1,8 +1,8 @@
 const Router = require('koa-router');
 
 const api = new Router();
-const info = require('./info');
+const info = require('./air-condition');
 
-api.use('/info', info.routes());
+api.use('/air-condition', info.routes());
 
 module.exports = api;

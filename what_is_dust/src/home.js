@@ -4,6 +4,7 @@ import React, { Component } from 'react';
 import './home.css';
 
 import { Map, Marker, MarkerClusterer, Polyline } from 'react-kakao-maps'
+import API from './API';
 /* global kakao */
 
 export default class Home extends Component {
@@ -19,7 +20,11 @@ export default class Home extends Component {
       infoWindow: new kakao.maps.CustomOverlay({}),
       region: '휴먼스케이프',
       departure: null,
+      departureTitle: null,
       arrival: null,
+      arrivalTitle: null,
+      curAirCondition: [],
+      routeInformation: null,
     }
 
     this.searchPlaces = this.searchPlaces.bind(this);
@@ -32,6 +37,7 @@ export default class Home extends Component {
     this.displayInfowindow = this.displayInfowindow.bind(this);
     this.displayPagination = this.displayPagination.bind(this);
     this.closeOverlay = this.closeOverlay.bind(this);
+    this.getRouteAirCondition = this.getRouteAirCondition.bind(this);
   };
 
   searchPlaces(){
@@ -62,6 +68,7 @@ export default class Home extends Component {
         return;
     }
   }
+
   displayPlaces(places) {
 
       var listEl = document.getElementById('placesList'),
@@ -209,6 +216,8 @@ export default class Home extends Component {
   // 검색결과 목록 또는 마커를 클릭했을 때 호출되는 함수입니다
   // 인포윈도우에 장소명을 표시합니다
   displayInfowindow(marker, title) {
+       console.log(marker)
+
         let content = document.createElement('div');
         content.className = 'wraps';
 
@@ -228,16 +237,54 @@ export default class Home extends Component {
         let body = document.createElement('div');
         body.className = 'body';
         let desc = document.createElement('div');
-        desc.className = 'desc';
-        let ellipsis = document.createElement('div');
-        desc.class = 'ellipsis';
-        ellipsis.innerHTML = '제주특별자치도 제주시 첨단로 242';
-        let jibun = document.createElement('div');
-        jibun.innerHTML = '(우) 63309 (지번) 영평동 2181';
-        jibun.className = 'jibun ellipsis';
+        let second = document.createElement('LI');
+        let getMise = document.createElement("BUTTON");
+        getMise.innerHTML = '미세먼지 정보';
+        getMise.onclick = () => {
+          let position = marker.getPosition();
+          console.log(marker.getPosition());
+          console.log(position['Ga']);
+          API.get('/api/air-condition',{
+            params: {
+              latitude: position['Ha'],
+              longitude: position['Ga']
+            }
+          }).then((response) => {
+            console.log('Success');
+            console.log(response.data);
+            this.setState({
+              curAirCondition : response.data
+            });
+          })
+          .catch(function(error) {
+            console.log(error);
+          })
+          .finally(function() {
+            // always executed
+          });
+        };
+        let setDepart = document.createElement("BUTTON");
+        setDepart.innerHTML = '출발지로 설정하기';
+        setDepart.onclick = () => {
+          this.setState({
+            departure : marker.getPosition(),
+            departureTitle : title,
+          });
+        };
+        let setArrive = document.createElement("BUTTON");
+        setArrive.innerHTML = '도착지로 설정하기';
+        setArrive.onclick = () => {
+          this.setState({
+            arrival : marker.getPosition(),
+            arrivalTitle : title,
+          });
+        };
 
-        desc.appendChild(ellipsis);
-        desc.appendChild(jibun);
+        second.appendChild(getMise);
+        second.appendChild(setDepart);
+        second.appendChild(setArrive);
+
+        desc.appendChild(second);
         body.appendChild(desc);
         titles.appendChild(close);
         info.appendChild(titles);
@@ -248,7 +295,25 @@ export default class Home extends Component {
       this.state.infoWindow.setPosition(marker.getPosition());
       this.state.infoWindow.setMap(this.state.map);
   }
-
+  getRouteAirCondition() {
+    API.get('/api/air-condition/route',{
+      params: {
+        departure: this.state.departure,
+        arrival: this.state.arrival
+      }
+    }).then((response) => {
+      this.setState({
+        routeInformation: response.data
+      });
+      console.log(this.state.routeInformation);
+    })
+    .catch(function(error) {
+      console.log(error);
+    })
+    .finally(function() {
+      // always executed
+    });
+  }
    // 검색결과 목록의 자식 Element를 제거하는 함수입니다
   removeAllChildNods(el) {
       while (el.hasChildNodes()) {
@@ -266,11 +331,11 @@ export default class Home extends Component {
       level: 3
       }),
     });
-
     this.searchPlaces();
     // marker.setMap(map);
   }
   render() {
+
     return (
       <section id="home">
         <div className="cover">
@@ -290,7 +355,12 @@ export default class Home extends Component {
             </div>
           <ul id="placesList"></ul>
           <div id="pagination"></div>
-          </div>
+        </div>
+        <div id="footer">
+          출발지 : {this.state.departureTitle}  <br/>
+          도착지 : {this.state.arrivalTitle}  <br/>
+          <button onClick = {this.getRouteAirCondition}> 경로 별 정보 알아보기 </button> <br/>
+        </div>
       </section>
     );
   }

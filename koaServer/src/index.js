@@ -3,7 +3,11 @@ const Router = require('koa-router');
 
 const app = new Koa();
 const router = new Router();  //Router instance 생성
+
 const api = require('./api');
+
+const cors = require('@koa/cors');
+app.use(cors());
 
 router.use('/api', api.routes()); // api 라우트를 /api 경로 하위 라우트로 설정
 
