@@ -75,6 +75,7 @@ exports.routeCondition = async (ctx) => {
 const getRoute = (depLat,depLon,arrLat,arrLon) => {
   return axios.get('https://maps.googleapis.com/maps/api/directions/json?origin=' + depLat + ',' + depLon + '&destination=' + arrLat + ',' + arrLon +'&mode=transit&departure_time=now&key=' + googleMapKey + '&language=ko'
   ).then(function(response) {
+    console.log(response['data']);
     let routeInformation = [];
     for(let i=0; i<response['data'].routes[0]['legs'][0]['steps'].length; i++) {
       let info = {};

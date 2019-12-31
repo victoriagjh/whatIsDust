@@ -5,6 +5,12 @@ import './home.css';
 
 import { Map, Marker, MarkerClusterer, Polyline } from 'react-kakao-maps'
 import API from './API';
+
+import veryGood from './gradeIcon/cool.png';
+import good from './gradeIcon/smile.png';
+import bad from './gradeIcon/angry.png';
+import veryBad from './gradeIcon/devil.png';
+
 /* global kakao */
 
 export default class Home extends Component {
@@ -14,16 +20,16 @@ export default class Home extends Component {
       map: null,
       markers: [],
       curMarker: new kakao.maps.Marker({
-          position: new kakao.maps.LatLng(37.503716, 127.044844)
+          position: new kakao.maps.LatLng(37.6028246477328, 126.928945504408)
       }),
       placeSearch: new kakao.maps.services.Places(),
       infoWindow: new kakao.maps.CustomOverlay({}),
-      region: '휴먼스케이프',
+      region: '은평구청',
       departure: null,
       departureTitle: null,
       arrival: null,
       arrivalTitle: null,
-      curAirCondition: [],
+      curAirCondition: null,
       routeInformation: null,
     }
 
@@ -335,7 +341,93 @@ export default class Home extends Component {
     // marker.setMap(map);
   }
   render() {
+    let currentAirCondition = null;
+    if (this.state.curAirCondition != null) {
+      let pm10Image = null;
+      let pm25Image = null;
+      switch (this.state.curAirCondition.pm10Grade) {
+        case '1':
+          pm10Image = <img src={veryGood} width = '50px' heigth = "100px"/>;
+          break;
+        case '2':
+          pm10Image = <img src={good} width = '50px' heigth = "100px"/>;
+          break;
+        case '3':
+          pm10Image = <img src={bad} width = '50px' heigth = "100px"/>;
+          break;
+        case '4':
+          pm10Image = <img src={veryBad} width = '50px' heigth = "100px"/>;
+          break;
+        default:
+          pm10Image = null;
+      }
+      switch (this.state.curAirCondition.pm25Grade) {
+        case '1':
+          pm25Image = <img src={veryGood} width = '50px' heigth = "100px"/>;
+          break;
+        case '2':
+          pm25Image = <img src={good} width = '50px' heigth = "100px"/>;
+          break;
+        case '3':
+          pm25Image = <img src={bad} width = '50px' heigth = "100px"/>;
+          break;
+        case '4':
+          pm25Image = <img src={veryBad} width = '50px' heigth = "100px"/>;
+          break;
+        default:
+          pm25Image = null;
+      }
+      currentAirCondition =  <h5>미세먼지 등급 <br/> {pm10Image} <br/>
+        미세먼지 지수 : {this.state.curAirCondition.pm10Value} <br/>
+        초미세먼지 등급 <br/> {pm25Image} <br/>
+        초미세먼지 지수 : {this.state.curAirCondition.pm25Value} <br/> </h5> ;
+    }
+    let getRouteAirCondition = new Array();
+    if(this.state.routeInformation != null) {
+      let pm10ImageArray = new Array();
+      let pm25ImageArray = new Array();
+      for(let i=0; i<this.state.routeInformation.length; i++) {
+        let pm10Image = null;
+        let pm25Image = null;
+        switch (this.state.routeInformation[i].pm10Grade) {
+          case '1':
+            pm10Image = <img src={veryGood} width = '50px' heigth = "100px"/>;
+            break;
+          case '2':
+            pm10Image = <img src={good} width = '50px' heigth = "100px"/>;
+            break;
+          case '3':
+            pm10Image = <img src={bad} width = '50px' heigth = "100px"/>;
+            break;
+          case '4':
+            pm10Image = <img src={veryBad} width = '50px' heigth = "100px"/>;
+            break;
+          default:
+            pm10Image = null;
+        }
+        switch (this.state.routeInformation.pm25Grade) {
+          case '1':
+            pm25Image = <img src={veryGood} width = '50px' heigth = "100px"/>;
+            break;
+          case '2':
+            pm25Image = <img src={good} width = '50px' heigth = "100px"/>;
+            break;
+          case '3':
+            pm25Image = <img src={bad} width = '50px' heigth = "100px"/>;
+            break;
+          case '4':
+            pm25Image = <img src={veryBad} width = '50px' heigth = "100px"/>;
+            break;
+          default:
+            pm25Image = null;
+        }
+        pm10ImageArray[i]=pm10Image;
+        pm25ImageArray[i]=pm25Image;
+      }
+      for(let i=0; i<this.state.routeInformation.length; i++) {
 
+      }
+    }
     return (
       <section id="home">
         <div className="cover">
@@ -357,9 +449,19 @@ export default class Home extends Component {
           <div id="pagination"></div>
         </div>
         <div id="footer">
-          출발지 : {this.state.departureTitle}  <br/>
-          도착지 : {this.state.arrivalTitle}  <br/>
-          <button onClick = {this.getRouteAirCondition}> 경로 별 정보 알아보기 </button> <br/>
+          <div className="left-box">
+            <h5> 현재위치 : {this.state.region} </h5><br/>
+            <div id="middle">
+              {currentAirCondition}
+            </div>
+          </div>
+          <div className="right-box">
+            출발지 : {this.state.departureTitle}  <br/>
+            도착지 : {this.state.arrivalTitle}  <br/>
+            <button onClick = {this.getRouteAirCondition}> 경로 별 정보 알아보기 </button> <br/>
+
+          </div>
+
         </div>
       </section>
     );
