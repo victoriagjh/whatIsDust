@@ -97,24 +97,38 @@
 .infos:after {content: '';position: absolute;margin-left: -12px;left: 50%;bottom: 0;width: 22px;height: 12px;background: url('http://t1.daumcdn.net/localimg/localimages/07/mapapidoc/vertex_white.png')}
 .infos .link {color: #5085BB;}
 
-#footer {  position:absolute;
-
-    bottom:0;
-
-    width:100%;
-
-    height:70px;
-
-    background:#ccc; }
+#footer {
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:100px;
+  background:#ccc;
+}
 
 .left-box {
   float: left;
-  width: 30%;
+  width: 20%;
+}
+.left-box h5{
+  font-size: 1rem;
+  font-style: italic;
+  padding-left: 10px;
 }
 .right-box {
   float: right;
-  width: 70%;
+  width: 80%;
+}
+.right-box h5{
+  font-size: 1rem;
+  font-style: italic;
+  padding-left: 10px;
 }
 #middle {
   text-align: center;
+}
+.info-button {
+  border-radius: 4px;
+  background-color: #4641D9;
+  width: 100px;
+  color: white;
 }

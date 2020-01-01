@@ -93,7 +93,14 @@ const getRoute = (depLat,depLon,arrLat,arrLon) => {
 }
 
 const routeAirCondition = async (depLat, depLon, routeInformation) => {
-  for(let i=0; i<routeInformation.length; i++) {
+  await getPosition(depLat,depLon)
+  .then((encodedStation) => getCondition(encodedStation))
+  .then((result) => {
+    let info = {};
+    info['airCondition'] = result;
+    routeInformation.push(info);
+  })
+  for(let i=0; i<routeInformation.length-1; i++) {
     await getPosition(routeInformation[i]['location']['lat'],routeInformation[i]['location']['lng'])
     .then((encodedStation) => getCondition(encodedStation))
     .then((result) => {

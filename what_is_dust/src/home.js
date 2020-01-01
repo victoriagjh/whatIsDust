@@ -5,11 +5,17 @@ import './home.css';
 
 import { Map, Marker, MarkerClusterer, Polyline } from 'react-kakao-maps'
 import API from './API';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 import veryGood from './gradeIcon/cool.png';
 import good from './gradeIcon/smile.png';
 import bad from './gradeIcon/angry.png';
 import veryBad from './gradeIcon/devil.png';
+import next from './gradeIcon/next.png';
+import start from './gradeIcon/start.png';
+import finish from './gradeIcon/finish.png';
+import loading from './gradeIcon/loading.gif';
+import Button from 'react-bootstrap/Button';
 
 /* global kakao */
 
@@ -20,7 +26,7 @@ export default class Home extends Component {
       map: null,
       markers: [],
       curMarker: new kakao.maps.Marker({
-          position: new kakao.maps.LatLng(37.6028246477328, 126.928945504408)
+          position: new kakao.maps.LatLng(37.503716, 127.044844)
       }),
       placeSearch: new kakao.maps.services.Places(),
       infoWindow: new kakao.maps.CustomOverlay({}),
@@ -31,6 +37,7 @@ export default class Home extends Component {
       arrivalTitle: null,
       curAirCondition: null,
       routeInformation: null,
+      buttonClicked:null,
     }
 
     this.searchPlaces = this.searchPlaces.bind(this);
@@ -243,9 +250,15 @@ export default class Home extends Component {
         let body = document.createElement('div');
         body.className = 'body';
         let desc = document.createElement('div');
+        let list = document.createElement('list');
         let second = document.createElement('LI');
-        let getMise = document.createElement("BUTTON");
+        let br = document.createElement('div');
+        br.innerHTML+='<br>'
+        let second_ = document.createElement('LI');
+
+        let getMise = document.createElement("Button");
         getMise.innerHTML = '미세먼지 정보';
+        getMise.className = 'info-button';
         getMise.onclick = () => {
           let position = marker.getPosition();
           console.log(marker.getPosition());
@@ -269,7 +282,7 @@ export default class Home extends Component {
             // always executed
           });
         };
-        let setDepart = document.createElement("BUTTON");
+        let setDepart = document.createElement("Button");
         setDepart.innerHTML = '출발지로 설정하기';
         setDepart.onclick = () => {
           this.setState({
@@ -277,7 +290,8 @@ export default class Home extends Component {
             departureTitle : title,
           });
         };
-        let setArrive = document.createElement("BUTTON");
+        setDepart.className = 'info-button';
+        let setArrive = document.createElement("Button");
         setArrive.innerHTML = '도착지로 설정하기';
         setArrive.onclick = () => {
           this.setState({
@@ -285,12 +299,15 @@ export default class Home extends Component {
             arrivalTitle : title,
           });
         };
-
+        setArrive.className ='info-button';
         second.appendChild(getMise);
-        second.appendChild(setDepart);
-        second.appendChild(setArrive);
+        second.appendChild(br);
+        second_.appendChild(setDepart);
+        second_.appendChild(setArrive);
 
-        desc.appendChild(second);
+        list.appendChild(second);
+        list.appendChild(second_);
+        desc.appendChild(list);
         body.appendChild(desc);
         titles.appendChild(close);
         info.appendChild(titles);
@@ -302,6 +319,9 @@ export default class Home extends Component {
       this.state.infoWindow.setMap(this.state.map);
   }
   getRouteAirCondition() {
+    this.setState({
+      buttonClicked: true,
+    });
     API.get('/api/air-condition/route',{
       params: {
         departure: this.state.departure,
@@ -377,19 +397,26 @@ export default class Home extends Component {
         default:
           pm25Image = null;
       }
-      currentAirCondition =  <h5>미세먼지 등급 <br/> {pm10Image} <br/>
+      currentAirCondition =  <h5><br/><br/><br/> 미세먼지 등급 <br/> {pm10Image} <br/>
         미세먼지 지수 : {this.state.curAirCondition.pm10Value} <br/>
         초미세먼지 등급 <br/> {pm25Image} <br/>
         초미세먼지 지수 : {this.state.curAirCondition.pm25Value} <br/> </h5> ;
     }
-    let getRouteAirCondition = new Array();
+    let routeAirCondition = null;
+    let tempRouteAirCondition = [];
+    if (this.state.buttonClicked!= null) {
+      routeAirCondition = <img src={loading} width = '300px' heigth = "300px"/>;
+    }
     if(this.state.routeInformation != null) {
+      for(let i=0; i<this.state.routeInformation.length-1; i++) {
+        tempRouteAirCondition.push(this.state.routeInformation[i]);
+      }
       let pm10ImageArray = new Array();
       let pm25ImageArray = new Array();
       for(let i=0; i<this.state.routeInformation.length; i++) {
         let pm10Image = null;
         let pm25Image = null;
-        switch (this.state.routeInformation[i].pm10Grade) {
+        switch (this.state.routeInformation[i]['airCondition'].pm10Grade) {
           case '1':
             pm10Image = <img src={veryGood} width = '50px' heigth = "100px"/>;
             break;
@@ -405,7 +432,7 @@ export default class Home extends Component {
           default:
             pm10Image = null;
         }
-        switch (this.state.routeInformation.pm25Grade) {
+        switch (this.state.routeInformation[i]['airCondition'].pm25Grade) {
           case '1':
             pm25Image = <img src={veryGood} width = '50px' heigth = "100px"/>;
             break;
@@ -424,9 +451,32 @@ export default class Home extends Component {
         pm10ImageArray[i]=pm10Image;
         pm25ImageArray[i]=pm25Image;
       }
-      for(let i=0; i<this.state.routeInformation.length; i++) {
-
-      }
+      routeAirCondition =
+      <table>
+        <thead>
+          <tr><th><br/>경로별 미세먼지 정보</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><img src={start} width = '50px' heigth = "30px"/> <br/><h6>{this.state.departureTitle} <br/> 미세먼지 등급<br/>{pm10ImageArray[this.state.routeInformation.length-1]}<br/>미세먼지 지수 : {this.state.routeInformation[this.state.routeInformation.length-1]['airCondition'].pm10Value}<br/>
+            </h6></td>
+            {tempRouteAirCondition.map(( listValue, index ) => {
+              if(index!=tempRouteAirCondition.length-1) {
+                return (
+                    <td key={index}><img src={next} width = '40px' heigth = "25px"/>
+                    <h6>{listValue.instruction}<br/>소요시간 : {listValue.duration}<br/>미세먼지 등급<br/>{pm10ImageArray[index]}<br/>미세먼지 지수 : <br/>{listValue.airCondition.pm10Value}<br/></h6></td>
+                );
+              }
+              else {
+                return (
+                    <td key={index}><img src={finish} width = '50px' heigth = "30px"/><br/>
+                    <h6>{listValue.instruction}<br/>소요시간 : {listValue.duration}<br/>미세먼지 등급<br/>{pm10ImageArray[index]}<br/>미세먼지 지수 : {listValue.airCondition.pm10Value}<br/></h6></td>
+                );
+              }
+            })}
+          </tr>
+        </tbody>
+      </table>;
     }
     return (
       <section id="home">
@@ -440,7 +490,7 @@ export default class Home extends Component {
             <div id="menu_wrap" className="bg_white">
                 <div className="option">
                   지역 검색 : <input type="text" value = {this.state.region} id="keyword" size="15" onChange={(e) => this.setState({region: e.target.value})}/>
-                  <button type="submit" onClick={this.searchPlaces}>검색하기</button>
+                  <Button  variant="light" type="submit" onClick={this.searchPlaces}>검색하기</Button>
                 </div>
                 <ul id="placesList"></ul>
                 <div id="pagination"></div>
@@ -456,10 +506,12 @@ export default class Home extends Component {
             </div>
           </div>
           <div className="right-box">
-            출발지 : {this.state.departureTitle}  <br/>
+            <h5>출발지 : {this.state.departureTitle}  <br/>
             도착지 : {this.state.arrivalTitle}  <br/>
-            <button onClick = {this.getRouteAirCondition}> 경로 별 정보 알아보기 </button> <br/>
-
+            <Button  variant="secondary" onClick = {this.getRouteAirCondition}> 경로별 미세먼지 정보 알아보기 </Button> <br/> <br/></h5>
+            <div id="middle">
+              {routeAirCondition}
+            </div>
           </div>
 
         </div>
