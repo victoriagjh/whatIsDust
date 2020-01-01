@@ -1,30 +1,19 @@
 const Koa = require('koa');
-const Router = require('koa-router');
+const indexRoutes = require('./routes/index');
 
 const app = new Koa();
-const router = new Router();  //Router instance 생성
-
-const api = require('./api');
+const PORT = process.env.PORT || 1337;
 
 const cors = require('@koa/cors');
-
-const { Pool } = require('pg');
-
-app.pool = new Pool({
-  user: 'joohee',
-  host: 'localhost',
-  database: 'what_is_dust',
-  password: '', // Password is empty be default
-  port: 5432, // Default port
-});
 
 app.use(cors());
 
 router.use('/api', api.routes()); // api 라우트를 /api 경로 하위 라우트로 설정
 
-app.use(router.routes());
-app.use(router.allowedMethods());
+app.use(indexRoutes.routes());
 
-app.listen(4000, () => {
-  console.log('koaServer is listening to port 4000');
+const server = app.listen(PORT, () => {
+  console.log(`Server listening on port: ${PORT}`);
 });
+
+module.exports = server;
