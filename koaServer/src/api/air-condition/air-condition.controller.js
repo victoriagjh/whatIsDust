@@ -110,3 +110,8 @@ const routeAirCondition = async (depLat, depLon, routeInformation) => {
   console.log(routeInformation);
   return routeInformation;
 }
+
+exports.getList = async (ctx) => {
+  const { rows } = await ctx.app.pool.query('SELECT $1::text as message', ['Hello, World!'])
+  ctx.body = rows[0].message;
+};

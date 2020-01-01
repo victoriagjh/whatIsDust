@@ -7,6 +7,17 @@ const router = new Router();  //Router instance 생성
 const api = require('./api');
 
 const cors = require('@koa/cors');
+
+const { Pool } = require('pg');
+
+app.pool = new Pool({
+  user: 'joohee',
+  host: 'localhost',
+  database: 'what_is_dust',
+  password: '', // Password is empty be default
+  port: 5432, // Default port
+});
+
 app.use(cors());
 
 router.use('/api', api.routes()); // api 라우트를 /api 경로 하위 라우트로 설정
