@@ -1,6 +1,6 @@
 import axios from "axios";
 
 export default axios.create({
-  baseURL : "http://localhost:4000",
-  responseType : "json"
+  baseURL: "http://oss.khunet.net:4000",
+  responseType: "json",
 });
